@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bubbles App</title>
+  </head>
+  <body>
+    <div id="title">
+      <h1>Bubbles App</h1>
+    </div>
+    <div id="container">
+      <canvas
+        id="myCanvas"
+        width="800"
+        height="450"
+        style="border: 1px solid #000"
+      ></canvas>
+      <button id="resetButton">Reset</button>
+    </div>
+
+    <script>
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext("2d");
+      var container = document.getElementById("container");
+
+      // calculate centre of canvas
+      var centerX = (window.innerWidth - canvas.width) / 2;
+      var centerY = (window.innerHeight - canvas.height) / 2;
+
+      // canvas position-centre
+      container.style.position = "absolute";
+      container.style.left = centerX + "px";
+      container.style.top = centerY + "px";
+
+      //  position of the canvas
+      var canvasRect = canvas.getBoundingClientRect();
+
+      // reset button position
+      var resetButton = document.getElementById("resetButton");
+      resetButton.style.border = "2px solid black";
+      resetButton.style.backgroundColor = "white";
+      resetButton.style.boxShadow = " 3px 3px 5px 0 black";
+      resetButton.style.padding = "5px 10px";
+      resetButton.style.position = "absolute";
+      resetButton.style.top = "480px";
+      resetButton.style.right = "10px";
+      //
+
+      // title position
+      var title = document.getElementById("title");
+      title.style.position = "absolute";
+      title.style.top = canvasRect.top - 80 + "px";
+      title.style.left = canvasRect.left + "px";
+
+      // center title text
+      title.style.width = canvas.width + "px";
+      title.style.textAlign = "center";
+
+      var circles = [
+        { y: 50, x: 50, radius: 20, color: "orange", touched: false },
+        { y: 150, x: 50, radius: 20, color: "blue", touched: false },
+        { y: 250, x: 50, radius: 20, color: "red", touched: false },
+        { y: 350, x: 50, radius: 20, color: "green", touched: false },
+      ];
+
+      var arrows = [
+        { x: canvas.width - 100, y: 50, moving: false },
+        { x: canvas.width - 100, y: 150, moving: false },
+        { x: canvas.width - 100, y: 250, moving: false },
+        { x: canvas.width - 100, y: 350, moving: false },
+      ];
+
+      function drawCircle(circle) {
+        ctx.beginPath();
+        ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2, true);
+        ctx.fillStyle = circle.touched ? "#808080" : circle.color;
+        ctx.fill();
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      function drawArrow(arrow, index) {
+        if (arrow.moving) {
+          var circle = circles[index];
+          if (arrow.x <= circle.x + circle.radius) {
+            circle.touched = true;
+            arrow.moving = false;
+          }
+        }
+
+        // Arrow body
+        ctx.beginPath();
+        ctx.moveTo(arrow.x, arrow.y);
+        ctx.lineTo(arrow.x + 50, arrow.y);
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Arrow head
+        ctx.beginPath();
+        ctx.moveTo(arrow.x, arrow.y);
+        ctx.lineTo(arrow.x + 10, arrow.y - 10);
+        ctx.lineTo(arrow.x + 10, arrow.y + 10);
+        ctx.closePath();
+        ctx.fillStyle = "#000";
+        ctx.fill();
+      }
+
+      function reset() {
+        arrows.forEach((arrow, index) => {
+          arrow.x = canvas.width - 100;
+          arrow.moving = false;
+          circles[index].touched = false;
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        circles.forEach(drawCircle);
+        arrows.forEach((arrow, index) => {
+          if (arrow.moving) {
+            arrow.x -= 2;
+          }
+          drawArrow(arrow, index);
+        });
+      }
+
+      canvas.addEventListener("click", function (event) {
+        var rect = canvas.getBoundingClientRect();
+        circles.forEach((circle, index) => {
+          var x = event.clientX - rect.left;
+          var y = event.clientY - rect.top;
+          if (
+            Math.sqrt((x - circle.x) * 2 + (y - circle.y) * 2) < circle.radius
+          ) {
+            arrows[index].moving = true;
+          }
+        });
+      });
+
+      document
+        .getElementById("resetButton")
+        .addEventListener("click", function () {
+          reset();
+          draw();
+        });
+
+      setInterval(draw, 10);
+    </script>
+  </body>
+</html>
